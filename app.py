@@ -55,5 +55,3 @@ if st.button("Analyze Risk"):
             st.warning(f"Predicted Risk Level: {risk_label.upper()}")
         else:
             st.error(f"Predicted Risk Level: {risk_label.upper()}")
-st.write("Loaded vectorizer type:", type(vectorizer))
-st.write("Has IDF:", hasattr(vectorizer, "idf_"))
