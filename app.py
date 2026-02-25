@@ -1,10 +1,30 @@
 import streamlit as st
 import joblib
 import re
+import os
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
+
+# -------------------------
+# NLTK DOWNLOAD (RUNS ONLY ONCE)
+# -------------------------
+@st.cache_resource(show_spinner=False)
+def download_nltk():
+    nltk_data_path = os.path.join(os.getcwd(), "nltk_data")
+    os.makedirs(nltk_data_path, exist_ok=True)
+    nltk.data.path.append(nltk_data_path)
+
+    packages = ["punkt_tab", "punkt", "stopwords", "wordnet", "omw-1.4"]
+
+    for pkg in packages:
+        try:
+            nltk.data.find(pkg)
+        except LookupError:
+            nltk.download(pkg, download_dir=nltk_data_path)
+
+download_nltk()
 
 # -------------------------
 # Page Config
@@ -20,64 +40,32 @@ st.set_page_config(
 # -------------------------
 st.markdown("""
     <style>
-        .main {
-            background-color: #f5f7fa;
-        }
-        .title {
-            font-size: 38px;
-            font-weight: 700;
-            text-align: center;
-            color: #1f4e79;
-        }
-        .subtitle {
-            text-align: center;
-            color: #555;
-            margin-bottom: 30px;
-        }
-        .risk-box {
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
-        .low {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .medium {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        .high {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .footer {
-            text-align: center;
-            font-size: 14px;
-            margin-top: 40px;
-            color: grey;
-        }
+        .main {background-color: #f5f7fa;}
+        .title {font-size: 38px;font-weight: 700;text-align: center;color: #1f4e79;}
+        .subtitle {text-align: center;color: #555;margin-bottom: 30px;}
+        .risk-box {padding: 15px;border-radius: 10px;text-align: center;font-size: 20px;font-weight: bold;margin-top: 20px;}
+        .low {background-color: #d4edda;color: #155724;}
+        .medium {background-color: #fff3cd;color: #856404;}
+        .high {background-color: #f8d7da;color: #721c24;}
+        .footer {text-align: center;font-size: 14px;margin-top: 40px;color: grey;}
     </style>
 """, unsafe_allow_html=True)
 
 # -------------------------
-# Load Model Components
+# Load Model Components (Cached)
 # -------------------------
-model = joblib.load("risk_model.pkl")
-vectorizer = joblib.load("tfidf_vectorizer.pkl")
-le = joblib.load("label_encoder.pkl")
+@st.cache_resource
+def load_models():
+    model = joblib.load("risk_model.pkl")
+    vectorizer = joblib.load("tfidf_vectorizer.pkl")
+    label_encoder = joblib.load("label_encoder.pkl")
+    return model, vectorizer, label_encoder
+
+model, vectorizer, le = load_models()
 
 # -------------------------
-# NLTK Setup
+# NLP Setup
 # -------------------------
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
-nltk.download('omw-1.4')
-
 stop_words = set(stopwords.words('english'))
 legal_keep = {"shall", "not", "may", "must"}
 stop_words = stop_words - legal_keep
