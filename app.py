@@ -190,28 +190,46 @@ import PyPDF2
 # PAGE CONFIG
 # -------------------------
 st.set_page_config(
-    page_title="LexiRisk AI",
+    page_title="Contract Risk Analyzer",
     page_icon="⚖️",
     layout="wide"
 )
 
 # -------------------------
-# PREMIUM ANIMATED UI
+# PREMIUM STYLING
 # -------------------------
 st.markdown("""
 <script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
 
 <style>
 body {
     background: linear-gradient(-45deg, #0f172a, #1e3a8a, #0f172a, #111827);
     background-size: 400% 400%;
-    animation: gradientMove 15s ease infinite;
+    animation: gradientMove 18s ease infinite;
 }
 
 @keyframes gradientMove {
     0% {background-position: 0% 50%;}
     50% {background-position: 100% 50%;}
     100% {background-position: 0% 50%;}
+}
+
+.hero-font {
+    font-family: 'Playfair Display', serif;
+}
+
+.glow-text {
+    background: linear-gradient(90deg,#60a5fa,#a78bfa,#f472b6,#60a5fa);
+    background-size: 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 6s linear infinite;
+}
+
+@keyframes shine {
+    0% {background-position: 0%;}
+    100% {background-position: 300%;}
 }
 
 .glass {
@@ -223,30 +241,7 @@ body {
 
 .glass:hover {
     transform: translateY(-6px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-}
-
-.glow-text {
-    background: linear-gradient(90deg,#60a5fa,#a78bfa,#60a5fa);
-    background-size: 200%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shine 4s linear infinite;
-}
-
-@keyframes shine {
-    0% {background-position: 0%;}
-    100% {background-position: 200%;}
-}
-
-.pulse-btn {
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% {box-shadow: 0 0 0 0 rgba(99,102,241,0.7);}
-    70% {box-shadow: 0 0 0 20px rgba(99,102,241,0);}
-    100% {box-shadow: 0 0 0 0 rgba(99,102,241,0);}
+    box-shadow: 0 25px 50px rgba(0,0,0,0.6);
 }
 </style>
 """, unsafe_allow_html=True)
@@ -298,41 +293,33 @@ def preprocess_text(text):
     return " ".join(tokens)
 
 # -------------------------
-# NAVBAR
+# HERO (CENTERED)
 # -------------------------
 st.markdown("""
-<div class="flex justify-between items-center mb-10">
-    <h1 class="text-3xl font-bold text-white glow-text">⚖️ LexiRisk AI</h1>
-    <div class="text-gray-300 text-sm">Next-Gen Legal Intelligence</div>
-</div>
-""", unsafe_allow_html=True)
-
-# -------------------------
-# HERO
-# -------------------------
-st.markdown("""
-<div class="glass p-12 rounded-3xl text-center text-white mb-12">
-    <h1 class="text-5xl font-extrabold mb-4 glow-text">
+<div class="text-center mt-10 mb-16">
+    <h1 class="text-6xl md:text-7xl font-extrabold hero-font glow-text mb-6">
         Intelligent Contract Risk Analyzer
     </h1>
-    <p class="text-gray-300 text-lg">
-        Detect legal risk instantly with AI-powered clause intelligence.
+    <p class="text-gray-300 text-xl max-w-2xl mx-auto">
+        AI-powered clause intelligence for modern legal decision-making.
     </p>
 </div>
 """, unsafe_allow_html=True)
 
 # -------------------------
-# INPUT CARD
+# INPUT CARD (CENTERED)
 # -------------------------
-st.markdown('<div class="glass p-10 rounded-3xl text-white">', unsafe_allow_html=True)
+st.markdown('<div class="flex justify-center">', unsafe_allow_html=True)
+st.markdown('<div class="glass p-10 rounded-3xl text-white w-full max-w-3xl">', unsafe_allow_html=True)
 
-input_method = st.radio("Choose Input Method:", ["Paste Text", "Upload PDF"])
+input_method = st.radio("Choose Input Method:", ["Paste Text", "Upload PDF"], horizontal=True)
+
 user_input = ""
 
 if input_method == "Paste Text":
     user_input = st.text_area(
         "Paste legal clause here",
-        height=220,
+        height=200,
         placeholder="The vendor shall not terminate the agreement without prior written notice..."
     )
 
@@ -347,23 +334,25 @@ elif input_method == "Upload PDF":
                 extracted_text += text
         user_input = extracted_text
         st.success("PDF uploaded successfully!")
-        st.text_area("Extracted Preview:", user_input[:1000], height=150)
+        st.text_area("Extracted Preview:", user_input[:800], height=150)
 
 analyze = st.button("🚀 Analyze Risk", use_container_width=True)
 
-st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div></div>", unsafe_allow_html=True)
 
 # -------------------------
-# RESULT CARD
+# RESULT CARD (CENTERED)
 # -------------------------
-st.markdown('<div class="glass p-10 rounded-3xl text-white mt-10">', unsafe_allow_html=True)
-st.markdown('<h2 class="text-3xl font-bold mb-6 glow-text">Risk Assessment</h2>', unsafe_allow_html=True)
+st.markdown('<div class="flex justify-center mt-12">', unsafe_allow_html=True)
+st.markdown('<div class="glass p-10 rounded-3xl text-white w-full max-w-3xl text-center">', unsafe_allow_html=True)
+
+st.markdown('<h2 class="text-3xl font-bold glow-text mb-8">Risk Assessment</h2>', unsafe_allow_html=True)
 
 if analyze:
     if user_input.strip() == "":
         st.warning("Please enter a contract clause.")
     else:
-        with st.spinner("AI is scanning the contract..."):
+        with st.spinner("AI is analyzing the contract..."):
             cleaned = preprocess_text(user_input)
             vector = vectorizer.transform([cleaned])
             prediction = model.predict(vector)
@@ -382,13 +371,12 @@ if analyze:
 
         st.markdown(
             f"""
-            <div class="text-center mb-6">
-                <div class="text-4xl font-bold glow-text mb-2">
-                    {risk_label.upper()} RISK
-                </div>
-                <div class="text-lg text-gray-300">
-                    Confidence: {confidence}%
-                </div>
+            <div class="text-4xl font-bold glow-text mb-4">
+                {risk_label.upper()} RISK
+            </div>
+
+            <div class="text-lg text-gray-300 mb-6">
+                Confidence: {confidence}%
             </div>
 
             <div class="w-full bg-gray-700 rounded-full h-6 overflow-hidden">
@@ -398,17 +386,16 @@ if analyze:
             """,
             unsafe_allow_html=True
         )
-
 else:
-    st.info("Risk result will appear here after analysis.")
+    st.markdown('<p class="text-gray-400">Risk result will appear here after analysis.</p>', unsafe_allow_html=True)
 
-st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div></div>", unsafe_allow_html=True)
 
 # -------------------------
 # FOOTER
 # -------------------------
 st.markdown("""
-<div class="text-center text-gray-400 mt-16 text-sm">
+<div class="text-center text-gray-400 mt-20 text-sm">
 Built with ❤️ using Streamlit • Machine Learning • NLP
 </div>
 """, unsafe_allow_html=True)
