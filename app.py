@@ -144,7 +144,7 @@ with container:
     # -------------------------
     # RESULT SECTION
     # -------------------------
-    st.markdown('<div class="card">', unsafe_allow_html=True)
+    # st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("Risk Assessment")
 
     if analyze:
