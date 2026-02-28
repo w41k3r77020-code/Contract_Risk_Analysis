@@ -6,7 +6,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
-import PyPDF2 
+import PyPDF2
 
 # -------------------------
 # NLTK DOWNLOAD (RUNS ONLY ONCE)
@@ -18,7 +18,6 @@ def download_nltk():
     nltk.data.path.append(nltk_data_path)
 
     packages = ["punkt_tab", "punkt", "stopwords", "wordnet", "omw-1.4"]
-
     for pkg in packages:
         try:
             nltk.data.find(pkg)
@@ -30,30 +29,44 @@ download_nltk()
 # -------------------------
 # Page Config
 # -------------------------
-st.set_page_config(
-    page_title="Contract Risk Analyzer",
-    page_icon="📄",
-    layout="centered"
-)
+st.set_page_config(page_title="Contract Risk Analyzer", page_icon="📄", layout="wide")
 
 # -------------------------
-# Custom CSS
+# Modern CSS
 # -------------------------
 st.markdown("""
-    <style>
-        .main {background-color: #f5f7fa;}
-        .title {font-size: 38px;font-weight: 700;text-align: center;color: #1f4e79;}
-        .subtitle {text-align: center;color: #555;margin-bottom: 30px;}
-        .risk-box {padding: 15px;border-radius: 10px;text-align: center;font-size: 20px;font-weight: bold;margin-top: 20px;}
-        .low {background-color: #d4edda;color: #155724;}
-        .medium {background-color: #fff3cd;color: #856404;}
-        .high {background-color: #f8d7da;color: #721c24;}
-        .footer {text-align: center;font-size: 14px;margin-top: 40px;color: grey;}
-    </style>
+<style>
+.block-container {padding-top: 2rem;}
+.hero {
+    background: linear-gradient(135deg,#1f4e79,#4f8cc9);
+    padding: 35px;
+    border-radius: 18px;
+    color: white;
+    text-align: center;
+    margin-bottom: 25px;
+}
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+.risk {
+    font-size: 28px;
+    font-weight: 700;
+    padding: 18px;
+    border-radius: 14px;
+    text-align: center;
+}
+.low {background:#d4edda;color:#155724;}
+.medium {background:#fff3cd;color:#856404;}
+.high {background:#f8d7da;color:#721c24;}
+.footer {text-align:center;color:gray;margin-top:40px}
+</style>
 """, unsafe_allow_html=True)
 
 # -------------------------
-# Load Model Components (Cached)
+# Load Models
 # -------------------------
 @st.cache_resource
 def load_models():
@@ -73,7 +86,7 @@ stop_words = stop_words - legal_keep
 lemmatizer = WordNetLemmatizer()
 
 # -------------------------
-# Preprocessing Function
+# Preprocess
 # -------------------------
 def preprocess_text(text):
     text = text.lower()
@@ -84,61 +97,80 @@ def preprocess_text(text):
     return " ".join(tokens)
 
 # -------------------------
-# UI Layout
+# HERO
 # -------------------------
-st.markdown('<div class="title">📄 Intelligent Contract Risk Analyzer</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">AI-powered clause-level risk classification system</div>', unsafe_allow_html=True)
+st.markdown('<div class="hero"><h1>📄 Intelligent Contract Risk Analyzer</h1><p>AI-powered clause level legal risk detection</p></div>', unsafe_allow_html=True)
 
 # -------------------------
-# Input Method Selection
+# INPUT SECTION
 # -------------------------
-input_method = st.radio(
-    "Choose Input Method:",
-    ["Paste Text", "Upload PDF"]
-)
+container = st.container()
 
-user_input = ""
+with container:
+    st.markdown('<div class="card">', unsafe_allow_html=True)
 
-if input_method == "Paste Text":
-    user_input = st.text_area("Enter Contract Clause Below:", height=150)
+    input_method = st.radio("Choose Input Method:", ["Paste Text", "Upload PDF"])
 
-elif input_method == "Upload PDF":
-    uploaded_file = st.file_uploader("Upload Contract PDF", type=["pdf"])
+    user_input = ""
 
-    if uploaded_file is not None:
-        pdf_reader = PyPDF2.PdfReader(uploaded_file)
-        extracted_text = ""
+    if input_method == "Paste Text":
+        user_input = st.text_area(
+            "Paste legal clause here",
+            height=220,
+            placeholder="Example: The vendor shall not terminate the agreement without prior written notice..."
+        )
 
-        for page in pdf_reader.pages:
-            text = page.extract_text()
-            if text:
-                extracted_text += text
+    elif input_method == "Upload PDF":
+        uploaded_file = st.file_uploader("Upload Contract PDF", type=["pdf"])
 
-        user_input = extracted_text
-        st.success("PDF uploaded and text extracted successfully!")
-        st.text_area("Extracted Text Preview:", user_input[:1000], height=150)
+        if uploaded_file is not None:
+            pdf_reader = PyPDF2.PdfReader(uploaded_file)
+            extracted_text = ""
 
-if st.button("Analyze Risk"):
+            for page in pdf_reader.pages:
+                text = page.extract_text()
+                if text:
+                    extracted_text += text
 
-    if user_input.strip() == "":
-        st.warning("Please enter a contract clause to analyze.")
-    else:
-        cleaned = preprocess_text(user_input)
-        vector = vectorizer.transform([cleaned])
+            user_input = extracted_text
+            st.success("PDF uploaded and text extracted successfully!")
+            st.text_area("Extracted Text Preview:", user_input[:1000], height=150)
 
-        prediction = model.predict(vector)
-        probabilities = model.predict_proba(vector)
+    analyze = st.button("🔍 Analyze Risk", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        risk_label = le.inverse_transform(prediction)[0]
-        confidence = round(max(probabilities[0]) * 100, 2)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-        # Display Result with Color
-        if risk_label.lower() == "low":
-            st.markdown(f'<div class="risk-box low">LOW RISK<br>Confidence: {confidence}%</div>', unsafe_allow_html=True)
-        elif risk_label.lower() == "medium":
-            st.markdown(f'<div class="risk-box medium">MEDIUM RISK<br>Confidence: {confidence}%</div>', unsafe_allow_html=True)
+    # -------------------------
+    # RESULT SECTION
+    # -------------------------
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.subheader("Risk Assessment")
+
+    if analyze:
+        if user_input.strip() == "":
+            st.warning("Please enter a contract clause.")
         else:
-            st.markdown(f'<div class="risk-box high">HIGH RISK<br>Confidence: {confidence}%</div>', unsafe_allow_html=True)
+            with st.spinner("Analyzing legal risk..."):
+                cleaned = preprocess_text(user_input)
+                vector = vectorizer.transform([cleaned])
+                prediction = model.predict(vector)
+                probabilities = model.predict_proba(vector)
+
+                risk_label = le.inverse_transform(prediction)[0]
+                confidence = round(max(probabilities[0]) * 100, 2)
+
+            css_class = risk_label.lower()
+            st.markdown(
+                f'<div class="risk {css_class}">{risk_label.upper()} RISK<br><span style="font-size:18px">Confidence: {confidence}%</span></div>',
+                unsafe_allow_html=True
+            )
+
+            st.progress(int(confidence))
+    else:
+        st.info("Result will appear here after analysis")
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # Footer
-st.markdown('<div class="footer">Built with ❤️ using Streamlit & Scikit-Learn</div>', unsafe_allow_html=True)
+st.markdown('<div class="footer">Built using Streamlit • Machine Learning • NLP</div>', unsafe_allow_html=True)
