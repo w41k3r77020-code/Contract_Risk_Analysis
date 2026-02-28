@@ -6,6 +6,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
+import PyPDF2 
 
 # -------------------------
 # NLTK DOWNLOAD (RUNS ONLY ONCE)
@@ -88,7 +89,34 @@ def preprocess_text(text):
 st.markdown('<div class="title">📄 Intelligent Contract Risk Analyzer</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">AI-powered clause-level risk classification system</div>', unsafe_allow_html=True)
 
-user_input = st.text_area("Enter Contract Clause Below:", height=150)
+# -------------------------
+# Input Method Selection
+# -------------------------
+input_method = st.radio(
+    "Choose Input Method:",
+    ["Paste Text", "Upload PDF"]
+)
+
+user_input = ""
+
+if input_method == "Paste Text":
+    user_input = st.text_area("Enter Contract Clause Below:", height=150)
+
+elif input_method == "Upload PDF":
+    uploaded_file = st.file_uploader("Upload Contract PDF", type=["pdf"])
+
+    if uploaded_file is not None:
+        pdf_reader = PyPDF2.PdfReader(uploaded_file)
+        extracted_text = ""
+
+        for page in pdf_reader.pages:
+            text = page.extract_text()
+            if text:
+                extracted_text += text
+
+        user_input = extracted_text
+        st.success("PDF uploaded and text extracted successfully!")
+        st.text_area("Extracted Text Preview:", user_input[:1000], height=150)
 
 if st.button("Analyze Risk"):
 
