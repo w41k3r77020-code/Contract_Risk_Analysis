@@ -187,22 +187,43 @@ from nltk.corpus import stopwords
 import PyPDF2
 
 # -------------------------
+# NLTK DOWNLOAD (RUNS ONCE)
+# -------------------------
+@st.cache_resource(show_spinner=False)
+def download_nltk():
+    nltk_data_path = os.path.join(os.getcwd(), "nltk_data")
+    os.makedirs(nltk_data_path, exist_ok=True)
+    nltk.data.path.append(nltk_data_path)
+
+    packages = ["punkt_tab", "punkt", "stopwords", "wordnet", "omw-1.4"]
+    for pkg in packages:
+        try:
+            nltk.data.find(pkg)
+        except LookupError:
+            nltk.download(pkg, download_dir=nltk_data_path)
+
+download_nltk()
+
+# -------------------------
 # PAGE CONFIG
 # -------------------------
 st.set_page_config(
     page_title="Contract Risk Analyzer",
     page_icon="⚖️",
-    layout="wide"
+    layout="centered"
 )
 
 # -------------------------
 # PREMIUM STYLING
 # -------------------------
 st.markdown("""
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <style>
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
+
 body {
     background: linear-gradient(-45deg, #0f172a, #1e3a8a, #0f172a, #111827);
     background-size: 400% 400%;
@@ -215,11 +236,12 @@ body {
     100% {background-position: 0% 50%;}
 }
 
-.hero-font {
-    font-family: 'Playfair Display', serif;
-}
-
-.glow-text {
+.hero-title {
+    font-family: 'Cinzel', serif;
+    font-size: 60px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-align: center;
     background: linear-gradient(90deg,#60a5fa,#a78bfa,#f472b6,#60a5fa);
     background-size: 300%;
     -webkit-background-clip: text;
@@ -232,37 +254,72 @@ body {
     100% {background-position: 300%;}
 }
 
-.glass {
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(25px);
-    border: 1px solid rgba(255,255,255,0.15);
-    transition: all 0.4s ease;
+.hero-subtitle {
+    text-align: center;
+    font-size: 20px;
+    color: #cbd5e1;
+    margin-top: 20px;
+    max-width: 750px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
 }
 
-.glass:hover {
+.glass-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 35px;
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+    margin-top: 40px;
+    transition: 0.4s ease;
+}
+
+.glass-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+.result-box {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 600;
+    padding: 25px;
+    border-radius: 15px;
+    margin-top: 20px;
+}
+
+.low {background:#14532d; color:#bbf7d0;}
+.medium {background:#78350f; color:#fde68a;}
+.high {background:#7f1d1d; color:#fecaca;}
+
+.footer {
+    text-align:center;
+    margin-top:70px;
+    color:#9ca3af;
+    font-size:14px;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # -------------------------
-# NLTK DOWNLOAD
+# HERO SECTION
 # -------------------------
-@st.cache_resource(show_spinner=False)
-def download_nltk():
-    nltk_data_path = os.path.join(os.getcwd(), "nltk_data")
-    os.makedirs(nltk_data_path, exist_ok=True)
-    nltk.data.path.append(nltk_data_path)
-
-    packages = ["punkt", "stopwords", "wordnet", "omw-1.4"]
-    for pkg in packages:
-        try:
-            nltk.data.find(pkg)
-        except LookupError:
-            nltk.download(pkg, download_dir=nltk_data_path)
-
-download_nltk()
+st.markdown("""
+<div style="margin-top:60px;">
+    <div class="hero-title">
+        Intelligent Contract Risk Intelligence
+    </div>
+    <div class="hero-subtitle">
+        Transform complex legal clauses into clear, data-driven risk insights.
+        <br><br>
+        Powered by Machine Learning and Natural Language Processing.
+        <br><br>
+        <strong>Analyze. Understand. Decide with Confidence.</strong>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 # -------------------------
 # LOAD MODELS
@@ -293,24 +350,9 @@ def preprocess_text(text):
     return " ".join(tokens)
 
 # -------------------------
-# HERO (CENTERED)
+# INPUT CARD
 # -------------------------
-st.markdown("""
-<div class="text-center mt-10 mb-16">
-    <h1 class="text-6xl md:text-7xl font-extrabold hero-font glow-text mb-6">
-        Intelligent Contract Risk Analyzer
-    </h1>
-    <p class="text-gray-300 text-xl max-w-2xl mx-auto">
-        AI-powered clause intelligence for modern legal decision-making.
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
-# -------------------------
-# INPUT CARD (CENTERED)
-# -------------------------
-st.markdown('<div class="flex justify-center">', unsafe_allow_html=True)
-st.markdown('<div class="glass p-10 rounded-3xl text-white w-full max-w-3xl">', unsafe_allow_html=True)
+st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
 input_method = st.radio("Choose Input Method:", ["Paste Text", "Upload PDF"], horizontal=True)
 
@@ -318,13 +360,14 @@ user_input = ""
 
 if input_method == "Paste Text":
     user_input = st.text_area(
-        "Paste legal clause here",
-        height=200,
-        placeholder="The vendor shall not terminate the agreement without prior written notice..."
+        "Paste your legal clause below:",
+        height=220,
+        placeholder="Example: The vendor shall not terminate the agreement without prior written notice..."
     )
 
 elif input_method == "Upload PDF":
     uploaded_file = st.file_uploader("Upload Contract PDF", type=["pdf"])
+
     if uploaded_file:
         pdf_reader = PyPDF2.PdfReader(uploaded_file)
         extracted_text = ""
@@ -332,27 +375,23 @@ elif input_method == "Upload PDF":
             text = page.extract_text()
             if text:
                 extracted_text += text
+
         user_input = extracted_text
-        st.success("PDF uploaded successfully!")
-        st.text_area("Extracted Preview:", user_input[:800], height=150)
+        st.success("PDF uploaded successfully.")
+        st.text_area("Extracted Text Preview:", user_input[:1000], height=150)
 
-analyze = st.button("🚀 Analyze Risk", use_container_width=True)
+analyze = st.button("🔍 Analyze Risk", use_container_width=True)
 
-st.markdown("</div></div>", unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
 # -------------------------
-# RESULT CARD (CENTERED)
+# RESULT SECTION
 # -------------------------
-st.markdown('<div class="flex justify-center mt-12">', unsafe_allow_html=True)
-st.markdown('<div class="glass p-10 rounded-3xl text-white w-full max-w-3xl text-center">', unsafe_allow_html=True)
-
-st.markdown('<h2 class="text-3xl font-bold glow-text mb-8">Risk Assessment</h2>', unsafe_allow_html=True)
-
 if analyze:
     if user_input.strip() == "":
         st.warning("Please enter a contract clause.")
     else:
-        with st.spinner("AI is analyzing the contract..."):
+        with st.spinner("Analyzing legal risk..."):
             cleaned = preprocess_text(user_input)
             vector = vectorizer.transform([cleaned])
             prediction = model.predict(vector)
@@ -361,41 +400,23 @@ if analyze:
             risk_label = le.inverse_transform(prediction)[0]
             confidence = round(max(probabilities[0]) * 100, 2)
 
-        color_map = {
-            "low": "bg-green-500",
-            "medium": "bg-yellow-500",
-            "high": "bg-red-500"
-        }
-
-        bar_color = color_map[risk_label.lower()]
+        css_class = risk_label.lower()
 
         st.markdown(
-            f"""
-            <div class="text-4xl font-bold glow-text mb-4">
-                {risk_label.upper()} RISK
-            </div>
-
-            <div class="text-lg text-gray-300 mb-6">
-                Confidence: {confidence}%
-            </div>
-
-            <div class="w-full bg-gray-700 rounded-full h-6 overflow-hidden">
-                <div class="{bar_color} h-6 rounded-full transition-all duration-1000"
-                     style="width: {confidence}%"></div>
-            </div>
-            """,
+            f'<div class="result-box {css_class}">'
+            f'{risk_label.upper()} RISK<br>'
+            f'<span style="font-size:18px;">Confidence: {confidence}%</span>'
+            f'</div>',
             unsafe_allow_html=True
         )
-else:
-    st.markdown('<p class="text-gray-400">Risk result will appear here after analysis.</p>', unsafe_allow_html=True)
 
-st.markdown("</div></div>", unsafe_allow_html=True)
+        st.progress(int(confidence))
 
 # -------------------------
 # FOOTER
 # -------------------------
 st.markdown("""
-<div class="text-center text-gray-400 mt-20 text-sm">
-Built with ❤️ using Streamlit • Machine Learning • NLP
+<div class="footer">
+    Built with Streamlit • Machine Learning • NLP
 </div>
 """, unsafe_allow_html=True)
