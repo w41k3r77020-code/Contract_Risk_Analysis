@@ -1,3 +1,18 @@
-nltk_data/
-__pycache__/
+# Virtual environments
+.venv/
 venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# NLTK downloads
+nltk_data/
+
+# System files
+.DS_Store
+
+# Logs
+*.log
