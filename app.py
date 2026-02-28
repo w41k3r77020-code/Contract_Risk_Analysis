@@ -191,24 +191,30 @@ import PyPDF2
 # -------------------------
 st.set_page_config(
     page_title="Contract Risk Analyzer",
-    page_icon="📄",
+    page_icon="⚖️",
     layout="wide"
 )
 
 # -------------------------
-# TAILWIND CDN
+# TAILWIND + PREMIUM UI
 # -------------------------
 st.markdown("""
 <script src="https://cdn.tailwindcss.com"></script>
+
 <style>
 body {
-    background: linear-gradient(to bottom right, #f3f4f6, #e5e7eb);
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+.glass {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.15);
 }
 </style>
 """, unsafe_allow_html=True)
 
 # -------------------------
-# NLTK DOWNLOAD (RUNS ONCE)
+# NLTK DOWNLOAD
 # -------------------------
 @st.cache_resource(show_spinner=False)
 def download_nltk():
@@ -254,21 +260,31 @@ def preprocess_text(text):
     return " ".join(tokens)
 
 # -------------------------
-# HERO SECTION
+# NAVBAR
 # -------------------------
 st.markdown("""
-<div class="bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 p-10 rounded-3xl text-white text-center shadow-xl mb-8">
-    <h1 class="text-4xl font-extrabold mb-2">📄 Intelligent Contract Risk Analyzer</h1>
-    <p class="text-lg opacity-90">AI-powered clause level legal risk detection</p>
+<div class="flex justify-between items-center mb-8">
+    <h1 class="text-2xl font-bold text-white">⚖️ LexiRisk AI</h1>
+    <div class="text-gray-300 text-sm">AI Legal Intelligence</div>
 </div>
 """, unsafe_allow_html=True)
 
 # -------------------------
-# INPUT SECTION
+# HERO SECTION
 # -------------------------
 st.markdown("""
-<div class="bg-white/90 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-gray-200">
+<div class="glass p-10 rounded-3xl shadow-2xl text-center text-white mb-10">
+    <h1 class="text-4xl font-extrabold mb-3">Intelligent Contract Risk Analyzer</h1>
+    <p class="text-gray-300 text-lg">
+        Upload clauses or contracts and detect legal risk instantly using AI.
+    </p>
+</div>
 """, unsafe_allow_html=True)
+
+# -------------------------
+# INPUT CARD
+# -------------------------
+st.markdown('<div class="glass p-8 rounded-3xl shadow-xl text-white">', unsafe_allow_html=True)
 
 input_method = st.radio("Choose Input Method:", ["Paste Text", "Upload PDF"])
 user_input = ""
@@ -293,18 +309,16 @@ elif input_method == "Upload PDF":
         st.success("PDF uploaded successfully!")
         st.text_area("Extracted Preview:", user_input[:1000], height=150)
 
-analyze = st.button("🔍 Analyze Risk", use_container_width=True)
+analyze = st.button("🚀 Analyze Risk", use_container_width=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------
 # RESULT SECTION
 # -------------------------
-st.markdown("""
-<div class="bg-white p-8 rounded-3xl shadow-xl border border-gray-200 mt-6">
-""", unsafe_allow_html=True)
+st.markdown('<div class="glass p-8 rounded-3xl shadow-xl text-white mt-8">', unsafe_allow_html=True)
 
-st.markdown('<h2 class="text-2xl font-bold mb-6 text-gray-800">Risk Assessment</h2>', unsafe_allow_html=True)
+st.markdown('<h2 class="text-2xl font-bold mb-6">Risk Assessment</h2>', unsafe_allow_html=True)
 
 if analyze:
     if user_input.strip() == "":
@@ -320,29 +334,30 @@ if analyze:
             confidence = round(max(probabilities[0]) * 100, 2)
 
         color_map = {
-            "low": "bg-green-100 text-green-800 border-green-300",
-            "medium": "bg-yellow-100 text-yellow-800 border-yellow-300",
-            "high": "bg-red-100 text-red-800 border-red-300"
+            "low": "bg-green-500",
+            "medium": "bg-yellow-500",
+            "high": "bg-red-500"
         }
 
-        css_class = color_map[risk_label.lower()]
+        bar_color = color_map[risk_label.lower()]
 
         st.markdown(
             f"""
-            <div class="text-center p-6 rounded-2xl border-2 {css_class}">
-                <div class="text-3xl font-bold">{risk_label.upper()} RISK</div>
-                <div class="mt-3 text-lg font-medium">
-                    Confidence: {confidence}%
-                </div>
+            <div class="text-center mb-6">
+                <div class="text-4xl font-bold mb-3">{risk_label.upper()} RISK</div>
+                <div class="text-lg text-gray-300">Confidence: {confidence}%</div>
+            </div>
+
+            <div class="w-full bg-gray-700 rounded-full h-6">
+                <div class="{bar_color} h-6 rounded-full transition-all duration-700"
+                     style="width: {confidence}%"></div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-        st.progress(int(confidence))
-
 else:
-    st.info("Result will appear here after analysis")
+    st.info("Risk result will appear here after analysis.")
 
 st.markdown("</div>", unsafe_allow_html=True)
 
@@ -350,7 +365,7 @@ st.markdown("</div>", unsafe_allow_html=True)
 # FOOTER
 # -------------------------
 st.markdown("""
-<div class="text-center text-gray-500 mt-10 text-sm">
-Built using Streamlit • Machine Learning • NLP
+<div class="text-center text-gray-400 mt-12 text-sm">
+Built with ❤️ using Streamlit • Machine Learning • NLP
 </div>
 """, unsafe_allow_html=True)
