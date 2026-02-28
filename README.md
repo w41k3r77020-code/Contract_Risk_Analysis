@@ -155,3 +155,13 @@ The system is structured for integration with a user interface capable of:
 ---
 
 ## 13. Project Structure
+├── CONTRACT_RISK_CLASSIFICATION.ipynb
+├── model.pkl
+├── vectorizer.pkl
+├── label_encoder.pkl
+├── README.md
+
+
+## 14. Disclaimer
+
+This system is developed for academic and research purposes only and does not constitute legal advice.
