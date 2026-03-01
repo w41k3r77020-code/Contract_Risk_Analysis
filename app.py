@@ -170,27 +170,14 @@ def preprocess(text):
     text = re.sub(r"[^a-zA-Z\s]","",text.lower())
     return " ".join(_lm.lemmatize(w) for w in word_tokenize(text) if w not in _sw)
 
-<<<<<<< HEAD
 def run_model(text):
     cleaned = preprocess(text)
     vec = vectorizer.transform([cleaned])
     pred = model.predict(vec)
     probs = model.predict_proba(vec)
     label = le.inverse_transform(pred)[0]
-    conf = round(max(probs[0])*100, 2)
+    conf = round(max(probs[0]) * 100, 2)
     return {"label": label.lower(), "confidence": conf}
-=======
-# -------------------------
-# Preprocess
-# -------------------------
-def preprocess_text(text):
-    text = text.lower()
-    text = re.sub(r'[^a-zA-Z\s]', '', text)
-    tokens = word_tokenize(text, preserve_line=True)
-    tokens = [word for word in tokens if word not in stop_words]
-    tokens = [lemmatizer.lemmatize(word) for word in tokens]
-    return " ".join(tokens)
->>>>>>> 244af9a (Fix Streamlit cloud NLTK crash)
 
 for k,v in {"result":None}.items():
     if k not in st.session_state: st.session_state[k] = v
