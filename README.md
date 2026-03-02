@@ -165,3 +165,7 @@ The system is structured for integration with a user interface capable of:
 ## 14. Disclaimer
 
 This system is developed for academic and research purposes only and does not constitute legal advice.
+
+## 15. Deployed URL
+https://contractriskanalysis-l3qvfbvsojfij8hek3khzk.streamlit.app/
+
