@@ -7,12 +7,27 @@ env/
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Environment files
+.env
+*.env
 
 # NLTK downloads
 nltk_data/
 
 # System files
 .DS_Store
+Thumbs.db
 
 # Logs
 *.log
+
+# Streamlit cache
+.streamlit/
+
+# VS Code settings
+.vscode/
