@@ -154,7 +154,7 @@ def download_nltk():
     path = os.path.join(os.getcwd(), "nltk_data")
     os.makedirs(path, exist_ok=True)
     nltk.data.path.append(path)
-    for pkg in ["punkt","stopwords","wordnet","omw-1.4"]:
+    for pkg in ["punkt","punkt_tab","stopwords","wordnet","omw-1.4"]:
         try: nltk.data.find(pkg)
         except: nltk.download(pkg, download_dir=path)
 download_nltk()
