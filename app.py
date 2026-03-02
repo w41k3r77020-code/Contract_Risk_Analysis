@@ -174,10 +174,12 @@ def run_model(text):
     cleaned = preprocess(text)
     vec = vectorizer.transform([cleaned])
     pred = model.predict(vec)
-    probs = model.predict_proba(vec)
+    probs = model.predict_proba(vec)[0]
+    classes = le.classes_
+    prob_dict = {classes[i].lower(): round(probs[i] * 100, 2) for i in range(len(classes))}
     label = le.inverse_transform(pred)[0]
-    conf = round(max(probs[0]) * 100, 2)
-    return {"label": label.lower(), "confidence": conf}
+    conf = round(max(probs) * 100, 2)
+    return {"label": label.lower(), "confidence": conf, "all_probs": prob_dict}
 
 for k,v in {"result":None}.items():
     if k not in st.session_state: st.session_state[k] = v
@@ -195,23 +197,11 @@ body{background:#06060f;font-family:'DM Sans',sans-serif;color:#dde1f0;overflow:
 body::after{content:'';position:fixed;inset:0;pointer-events:none;
   background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");opacity:.4;}
 
-.nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;
-  display:flex;align-items:center;gap:28px;padding:9px 20px;
-  background:rgba(6,6,15,.82);backdrop-filter:blur(28px);
-  border:1px solid rgba(255,255,255,.08);border-radius:50px;
-  box-shadow:0 4px 28px rgba(0,0,0,.55);}
-.nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:14.5px;
-  background:linear-gradient(100deg,#c7d2fe,#f9a8d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.nav-links{display:flex;gap:22px;list-style:none;}
-.nav-links a{font-size:12.5px;font-weight:500;color:rgba(255,255,255,.38);text-decoration:none;transition:color .18s;}
-.nav-links a:hover{color:rgba(255,255,255,.82);}
-.nav-cta{font-size:12px;font-weight:600;padding:6px 15px;
-  background:linear-gradient(135deg,#5558e3,#c026a8);border-radius:50px;color:#fff;text-decoration:none;
-  box-shadow:0 2px 12px rgba(85,88,227,.4);}
+
 
 .hero{position:relative;width:100%;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:72px 20px 36px;overflow:hidden;}
+  padding:100px 20px 60px;overflow:hidden;}
 .hero::after{content:'';position:absolute;width:900px;height:550px;
   top:-180px;left:50%;transform:translateX(-50%);
   background:radial-gradient(ellipse,rgba(85,88,227,.17) 0%,transparent 65%);pointer-events:none;z-index:0;}
@@ -289,11 +279,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
 .sl{font-size:9.5px;color:rgba(255,255,255,.2);margin-top:3px;letter-spacing:.7px;text-transform:uppercase;}
 </style></head><body>
-<nav class="nav">
-  <span class="nav-logo">⚖ LexAI</span>
-  <ul class="nav-links"><li><a href="#">Analyser</a></li><li><a href="#">Features</a></li></ul>
-  <a href="#" class="nav-cta">Try Now →</a>
-</nav>
+
 <section class="hero">
   <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
   <div class="badge"><span class="bdot"></span>AI-Powered Legal Intelligence</div>
@@ -416,6 +402,12 @@ if st.session_state.result:
         "medium":"linear-gradient(90deg,#fbbf24,#f59e0b)",
         "high":  "linear-gradient(90deg,#f87171,#ef4444)",
     }
+    insights = {
+        "low": "This clause appears standard with minimal risk. Proceed with normal review.",
+        "medium": "Potential concerns detected. Review the wording for ambiguity or over-reaching terms.",
+        "high": "Critical risk detected! This clause contains significant liabilities or unfavorable terms."
+    }
+    
     _, rc, _ = st.columns([1,3,1])
     with rc:
         st.markdown(f"""
@@ -425,6 +417,21 @@ if st.session_state.result:
           <div class="rconf">Confidence: <strong>{R['confidence']}%</strong></div>
           <div class="rbar">
             <div class="rbar-fill" style="width:{R['confidence']}%;background:{bar_colors[R['label']]};"></div>
+          </div>
+          <div style="margin-top:20px;padding-top:15px;border-top:1px solid rgba(255,255,255,.05);text-align:left;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.3);margin-bottom:10px;">Probability Breakdown</div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;">
+              <span>Low Risk</span><span style="color:#86efac;">{R['all_probs'].get('low', 0)}%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;">
+              <span>Medium Risk</span><span style="color:#fde68a;">{R['all_probs'].get('medium', 0)}%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;">
+              <span>High Risk</span><span style="color:#fca5a5;">{R['all_probs'].get('high', 0)}%</span>
+            </div>
+          </div>
+          <div style="margin-top:15px;padding:12px;background:rgba(255,255,255,.03);border-radius:8px;font-size:13px;text-align:left;color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.05);">
+            <strong>Insight:</strong> {insights.get(R['label'])}
           </div>
         </div>""", unsafe_allow_html=True)
 
