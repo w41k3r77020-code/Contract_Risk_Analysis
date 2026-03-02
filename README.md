@@ -169,3 +169,7 @@ This system is developed for academic and research purposes only and does not co
 ## 15. Deployed URL
 https://contractriskanalysis-l3qvfbvsojfij8hek3khzk.streamlit.app/
 
+## Application Preview
+
+![Dashboard Screenshot](images/confusion_matrix.png)
+
