@@ -18,6 +18,26 @@ if not os.getenv("GROQ_API_KEY"):
 from agent.graph import build_agent
 from rag.llm_rag import client
 
+# Gracefully handle decommissioned Groq models at the API layer
+_original_create = client.chat.completions.create
+
+def _resilient_create(*args, **kwargs):
+    try:
+        return _original_create(*args, **kwargs)
+    except Exception as err:
+        err_str = str(err).lower()
+        if "model_not_found" in err_str or "decommissioned" in err_str or "does not exist" in err_str:
+            fallback_models = ["groq/compound-mini", "qwen/qwen3.6-27b", "openai/gpt-oss-20b"]
+            for model_id in fallback_models:
+                try:
+                    kwargs["model"] = model_id
+                    return _original_create(*args, **kwargs)
+                except Exception:
+                    continue
+        raise err
+
+client.chat.completions.create = _resilient_create
+
 app = FastAPI(
     title="ClauseGuard / ContractRisk AI API",
     description="REST API wrapping RAG, LangGraph agent, and Groq LLM contract risk analysis",
