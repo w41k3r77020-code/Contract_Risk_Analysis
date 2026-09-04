@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+python-multipart
+pypdf
+pandas
+numpy
+scikit-learn
+nltk
+groq
+python-dotenv
+langgraph
