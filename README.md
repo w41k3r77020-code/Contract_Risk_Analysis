@@ -194,9 +194,10 @@ Deployed on Streamlit Cloud
 
 * Groq API
 
-### 🔹 Frontend
+### 🔹 Backend API & Frontend Architecture
 
-* Streamlit
+* **Backend:** FastAPI, Uvicorn, Python-Multipart
+* **Frontend:** React 19, Vite, Tailwind CSS v4, Framer Motion, Recharts, Lucide Icons
 
 ### 🔹 Others
 
@@ -210,46 +211,96 @@ Deployed on Streamlit Cloud
 ```text
 Contract_Risk_Analysis/
 │
-├── app.py
-├── requirements.txt
+├── main.py                # FastAPI REST API layer
+├── app.py                 # Original Streamlit app (preserved)
+├── requirements.txt       # Backend dependencies
+├── Procfile               # Deployment config for Render/Railway
+├── .env.example           # Environment template
 ├── README.md
 │
+├── frontend/              # Deploy-ready React + Tailwind frontend (Vercel)
+│   ├── src/
+│   │   ├── components/    # Navbar, LandingHero, IntakeSection, ResultsView, Tabs
+│   │   ├── services/      # api.js client
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── vercel.json        # Vercel SPA rewrites
+│   ├── package.json
+│   └── vite.config.js
+│
 ├── agent/
-│   └── graph.py
+│   └── graph.py           # LangGraph workflow (unchanged)
 │
 ├── rag/
-│   ├── retriever.py
-│   ├── llm_rag.py
+│   ├── retriever.py       # FAISS retriever (unchanged)
+│   ├── llm_rag.py         # Groq LLM reasoning (unchanged)
 │   ├── build_index.py
 │   ├── faiss.index
 │   └── metadata.pkl
 │
 ├── utils/
-│   └── parser.py
+│   └── parser.py          # PDF extraction & clause segmentation (unchanged)
 │
 ├── risk_model.pkl
 ├── label_encoder.pkl
-├── tfidf_vectorizer.pkl
+└── tfidf_vectorizer.pkl
 ```
 
 ---
 
 ## 🔐 Environment Setup
 
-Create `.streamlit/secrets.toml`:
+Create a `.env` file in the root directory:
 
 ```text
-GROQ_API_KEY = "your_api_key_here"
+GROQ_API_KEY=your_groq_api_key_here
 ```
 
 ---
 
 ## ▶️ Run Locally
 
+### 1. Run FastAPI Backend
+
 ```bash
+# In project root
 pip install -r requirements.txt
-streamlit run app.py
+uvicorn main:app --reload --port 8000
 ```
+
+Backend API will be accessible at: `http://localhost:8000` (docs at `http://localhost:8000/docs`).
+
+### 2. Run React Frontend
+
+```bash
+# In frontend directory
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend will be accessible at: `http://localhost:5173`.
+
+---
+
+## 🚀 Deployment Guide
+
+### Deploying Frontend on Vercel
+1. Push repository to GitHub.
+2. In Vercel, import the repository and set **Root Directory** to `frontend`.
+3. Framework Preset will auto-detect as **Vite**.
+4. Add Environment Variable:
+   - `VITE_API_URL`: URL of your deployed FastAPI backend (e.g., `https://your-app.onrender.com`).
+5. Deploy!
+
+### Deploying Backend on Render / Railway
+1. Create a new Web Service pointing to this repository.
+2. **Build Command:** `pip install -r requirements.txt`
+3. **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+4. Add Environment Variable:
+   - `GROQ_API_KEY`: Your Groq API key.
+5. Deploy!
+
 
 ---
 

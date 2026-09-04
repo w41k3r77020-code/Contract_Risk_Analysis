@@ -15,3 +15,6 @@ seaborn
 plotly
 openai
 langgraph
+fastapi
+uvicorn
+python-multipart
